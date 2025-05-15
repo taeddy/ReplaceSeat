@@ -189,6 +189,7 @@
    <zorder>tdesk</zorder>
    <zorder>btn_rand</zorder>
    <zorder>btn_save</zorder>
+   <!-- 아래는 첫 화면이고, 즉시 사라지므로 가장 상위 레이어에 위치 -->
    <zorder>intro_bg</zorder>
    <zorder>intro_startbtn</zorder>
   </widget>

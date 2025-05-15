@@ -50,6 +50,7 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
             self.seat_btn_arr.append(Button('', self))
 
         # 좌석 위치 설정
+        # 차후 좌석 위치를 드래그앤드롭으로 변경 가능해지면 수정 예정
         for i in range(5):  # 1열
             self.seat_btn_arr[i].setGeometry(590, 360-60*i, 91, 51)
         for i in range(5):  # 2열
@@ -220,8 +221,17 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
             f.write(data)
         f.close()
 
+        # 현재 윈도우만 스크린샷 저장
+        # 기존 코드는 전체화면 스크린샷이 캡쳐되는 오류가 있었음
+        # 메뉴바를 제외하고 캡쳐할 수 있게 수정 필요
         screen = QApplication.primaryScreen()
-        screenshot = screen.grabWindow(self.winId())
+        window_geometry = self.geometry()
+        screenshot = screen.grabWindow(
+            self.winId(),
+            self.x(), self.y(),  # 시작 위치 (0,0)
+            window_geometry.width(),
+            window_geometry.height()
+        )
         screenshot.save('자리배치표.png', 'png')
 
         # 저장 완료 메시지 표시
@@ -239,7 +249,6 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         msg.exec_()
 
     def change_name(self, seat_idx):
-        current_name = self.seat_btn_arr[seat_idx].text()
         text, ok = InputDialog.getText(self, f'이름 변경 - 좌석 {seat_idx + 1}')
         
         if ok and text:

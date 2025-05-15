@@ -11,6 +11,9 @@ class InputDialog(QDialog):
         self.setWindowTitle('텍스트 입력')
         self.setFixedSize(300, 150)
         
+        # 이 다이얼로그는 독립된 윈도우에서 실행되므로
+        # uiinfo.ui에 포함하지 않음
+
         # 메인 레이아웃
         layout = QVBoxLayout()
         
