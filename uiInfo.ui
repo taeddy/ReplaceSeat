@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -7,13 +8,16 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>584</height>
+    <height>541</height>
    </rect>
   </property>
+
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>자리바꾸기</string>
   </property>
+
   <widget class="QWidget" name="centralwidget">
+   <!-- 교탁 -->
    <widget class="QLabel" name="tdesk">
     <property name="geometry">
      <rect>
@@ -41,6 +45,56 @@
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
+
+   <!-- 섞기 버튼 -->
+   <widget class="QPushButton" name="btn_rand">
+    <property name="geometry">
+     <rect>
+      <x>550</x>
+      <y>430</y>
+      <width>65</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>맑은 고딕</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #66391A; background-color: #FFEFB3; border-style: solid; border-color: #F5DA97; border-radius: 7px; border-width: 3px</string>
+    </property>
+    <property name="text">
+     <string>섞기</string>
+    </property>
+   </widget>
+
+   <!-- 저장 버튼 -->
+   <widget class="QPushButton" name="btn_save">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>430</y>
+      <width>45</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>맑은 고딕</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #66391A; background-color: #FFEFB3; border-style: solid; border-color: #F5DA97; border-radius: 7px; border-width: 3px</string>
+    </property>
+    <property name="text">
+     <string>저장</string>
+    </property>
+   </widget>
+
+   <!-- 배경 이미지 -->
    <widget class="QLabel" name="label_bg">
     <property name="enabled">
      <bool>true</bool>
@@ -72,6 +126,8 @@
      <bool>false</bool>
     </property>
    </widget>
+
+   <!-- 시작하기 배경 이미지 -->
    <widget class="QLabel" name="intro_bg">
     <property name="enabled">
      <bool>true</bool>
@@ -103,6 +159,8 @@
      <bool>false</bool>
     </property>
    </widget>
+
+   <!-- 시작하기 버튼 -->
    <widget class="QPushButton" name="intro_startbtn">
     <property name="geometry">
      <rect>
@@ -125,11 +183,16 @@
      <string>시작하기</string>
     </property>
    </widget>
+
+   <!-- 겹침순서 -->
    <zorder>label_bg</zorder>
    <zorder>tdesk</zorder>
+   <zorder>btn_rand</zorder>
+   <zorder>btn_save</zorder>
    <zorder>intro_bg</zorder>
    <zorder>intro_startbtn</zorder>
   </widget>
+
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -140,6 +203,7 @@
     </rect>
    </property>
   </widget>
+  
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>

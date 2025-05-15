@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5 import uic
 import numpy as np
+from InputDialog import InputDialog
 
 form_class_mainWindow = uic.loadUiType("uiInfo.ui")[0]
 
@@ -26,6 +27,10 @@ class Button(QPushButton):
             drag.setHotSpot(e.pos() - self.rect().topLeft())
             drag.exec_(Qt.MoveAction)
 
+    def mouseReleaseEvent(self, e: QMouseEvent):
+        if e.button() == Qt.RightButton:
+            self.clicked.emit()
+
 class SeatChanger(QMainWindow, form_class_mainWindow):
     def __init__(self) :
         super().__init__()
@@ -38,71 +43,23 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         self.setWindowTitle('자리바꾸기')
         self.setAcceptDrops(True)
         self.statusBar().hide()
-        self.setFixedHeight(541)
-        self.setFixedWidth(800)
 
-        self.btn_rand = QPushButton('섞기', self)
-        self.btn_rand.lower()
-        self.btn_rand.resize(65, 41)
-        self.btn_rand.move(550, 430)
-        # self.btn_rand.setStyleSheet(
-        #     'border-image: url(refresh_icon.png);'
-        # )
+        # 좌석 버튼 생성
+        self.seat_btn_arr = []
+        for i in range(24):
+            self.seat_btn_arr.append(Button('', self))
 
-        self.btn_save = QPushButton('저장', self)
-        self.btn_save.lower()
-        self.btn_save.resize(45, 41)
-        self.btn_save.move(630, 430)
-
-        self.seat_btn_0 = Button('', self)
-        self.seat_btn_1 = Button('', self)
-        self.seat_btn_2 = Button('', self)
-        self.seat_btn_3 = Button('', self)
-        self.seat_btn_4 = Button('', self)
-        self.seat_btn_5 = Button('', self)
-        self.seat_btn_6 = Button('', self)
-        self.seat_btn_7 = Button('', self)
-        self.seat_btn_8 = Button('', self)
-        self.seat_btn_9 = Button('', self)
-        self.seat_btn_10 = Button('', self)
-        self.seat_btn_11 = Button('', self)
-        self.seat_btn_12 = Button('', self)
-        self.seat_btn_13 = Button('', self)
-        self.seat_btn_14 = Button('', self)
-        self.seat_btn_15 = Button('', self)
-        self.seat_btn_16 = Button('', self)
-        self.seat_btn_17 = Button('', self)
-        self.seat_btn_18 = Button('', self)
-        self.seat_btn_19 = Button('', self)
-        self.seat_btn_20 = Button('', self)
-        self.seat_btn_21 = Button('', self)
-        self.seat_btn_22 = Button('', self)
-        self.seat_btn_23 = Button('', self)
-
-        self.seat_btn_0.setGeometry(590,360,91,51)
-        self.seat_btn_1.setGeometry(590,300,91,51)
-        self.seat_btn_2.setGeometry(590,240,91,51)
-        self.seat_btn_3.setGeometry(590,180,91,51)
-        self.seat_btn_4.setGeometry(590,120,91,51)
-        self.seat_btn_5.setGeometry(470,360,91,51)
-        self.seat_btn_6.setGeometry(470,300,91,51)
-        self.seat_btn_7.setGeometry(470,240,91,51)
-        self.seat_btn_8.setGeometry(470,180,91,51)
-        self.seat_btn_9.setGeometry(470,120,91,51)
-        self.seat_btn_10.setGeometry(350,360,91,51)
-        self.seat_btn_11.setGeometry(350,300,91,51)
-        self.seat_btn_12.setGeometry(350,240,91,51)
-        self.seat_btn_13.setGeometry(350,180,91,51)
-        self.seat_btn_14.setGeometry(230,360,91,51)
-        self.seat_btn_15.setGeometry(230,300,91,51)
-        self.seat_btn_16.setGeometry(230,240,91,51)
-        self.seat_btn_17.setGeometry(230,180,91,51)
-        self.seat_btn_18.setGeometry(230,120,91,51)
-        self.seat_btn_19.setGeometry(110,360,91,51)
-        self.seat_btn_20.setGeometry(110,300,91,51)
-        self.seat_btn_21.setGeometry(110,240,91,51)
-        self.seat_btn_22.setGeometry(110,180,91,51)
-        self.seat_btn_23.setGeometry(110,120,91,51)
+        # 좌석 위치 설정
+        for i in range(5):  # 1열
+            self.seat_btn_arr[i].setGeometry(590, 360-60*i, 91, 51)
+        for i in range(5):  # 2열
+            self.seat_btn_arr[i+5].setGeometry(470, 360-60*i, 91, 51)
+        for i in range(4):  # 3열
+            self.seat_btn_arr[i+10].setGeometry(350, 360-60*i, 91, 51)
+        for i in range(5):  # 4열
+            self.seat_btn_arr[i+14].setGeometry(230, 360-60*i, 91, 51)
+        for i in range(5):  # 5열
+            self.seat_btn_arr[i+19].setGeometry(110, 360-60*i, 91, 51)
 
         self.loading = QLabel('', self)
         self.loading.move(215, 110)
@@ -142,13 +99,7 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         self.seat_arr = [0] * self.stu_num
         self.stu_name = ['None'] * self.stu_num
         self.load_data()
-        self.seat_btn_arr = [
-            self.seat_btn_0, self.seat_btn_1, self.seat_btn_2, self.seat_btn_3, self.seat_btn_4,
-            self.seat_btn_5, self.seat_btn_6, self.seat_btn_7, self.seat_btn_8, self.seat_btn_9,
-            self.seat_btn_10, self.seat_btn_11, self.seat_btn_12, self.seat_btn_13,
-            self.seat_btn_14, self.seat_btn_15, self.seat_btn_16, self.seat_btn_17, self.seat_btn_18,
-            self.seat_btn_19, self.seat_btn_20, self.seat_btn_21, self.seat_btn_22, self.seat_btn_23,
-        ]
+        self.seat_btn_arr = self.seat_btn_arr
         self.fixed_seat_idx = []
 
         font = QFont()
@@ -177,30 +128,11 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         self.btn_rand.clicked.connect(self.seat_shuffle)
         self.btn_save.clicked.connect(self.save_seat)
         self.intro_startbtn.clicked.connect(self.intro_start)
-        self.seat_btn_arr[0].clicked.connect(lambda: self.fix_seat(0))
-        self.seat_btn_arr[1].clicked.connect(lambda: self.fix_seat(1))
-        self.seat_btn_arr[2].clicked.connect(lambda: self.fix_seat(2))
-        self.seat_btn_arr[3].clicked.connect(lambda: self.fix_seat(3))
-        self.seat_btn_arr[4].clicked.connect(lambda: self.fix_seat(4))
-        self.seat_btn_arr[5].clicked.connect(lambda: self.fix_seat(5))
-        self.seat_btn_arr[6].clicked.connect(lambda: self.fix_seat(6))
-        self.seat_btn_arr[7].clicked.connect(lambda: self.fix_seat(7))
-        self.seat_btn_arr[8].clicked.connect(lambda: self.fix_seat(8))
-        self.seat_btn_arr[9].clicked.connect(lambda: self.fix_seat(9))
-        self.seat_btn_arr[10].clicked.connect(lambda: self.fix_seat(10))
-        self.seat_btn_arr[11].clicked.connect(lambda: self.fix_seat(11))
-        self.seat_btn_arr[12].clicked.connect(lambda: self.fix_seat(12))
-        self.seat_btn_arr[13].clicked.connect(lambda: self.fix_seat(13))
-        self.seat_btn_arr[14].clicked.connect(lambda: self.fix_seat(14))
-        self.seat_btn_arr[15].clicked.connect(lambda: self.fix_seat(15))
-        self.seat_btn_arr[16].clicked.connect(lambda: self.fix_seat(16))
-        self.seat_btn_arr[17].clicked.connect(lambda: self.fix_seat(17))
-        self.seat_btn_arr[18].clicked.connect(lambda: self.fix_seat(18))
-        self.seat_btn_arr[19].clicked.connect(lambda: self.fix_seat(19))
-        self.seat_btn_arr[20].clicked.connect(lambda: self.fix_seat(20))
-        self.seat_btn_arr[21].clicked.connect(lambda: self.fix_seat(21))
-        self.seat_btn_arr[22].clicked.connect(lambda: self.fix_seat(22))
-        self.seat_btn_arr[23].clicked.connect(lambda: self.fix_seat(23))
+        
+        # 우클릭으로 자리 고정, 더블클릭으로 이름 변경
+        for i in range(self.stu_num):
+            self.seat_btn_arr[i].clicked.connect(lambda checked, idx=i: self.fix_seat(idx))
+            self.seat_btn_arr[i].mouseDoubleClickEvent = lambda e, idx=i: self.change_name(idx)
 
     def dragEnterEvent(self, e):
         e.accept()
@@ -274,8 +206,8 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
             )
 
     def intro_start(self):
-        self.intro_bg.hide()
-        self.intro_startbtn.hide()
+        self.intro_bg.deleteLater()
+        self.intro_startbtn.deleteLater()
         self.btn_rand.raise_()
         self.btn_save.raise_()
         for i in range(self.stu_num):
@@ -291,6 +223,31 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         screen = QApplication.primaryScreen()
         screenshot = screen.grabWindow(self.winId())
         screenshot.save('자리배치표.png', 'png')
+
+        # 저장 완료 메시지 표시
+        msg = QMessageBox()
+        msg.setWindowTitle('알림')
+        msg.setText('저장되었습니다')
+        msg.setIcon(QMessageBox.Information)
+        msg.setStyleSheet(
+            'QMessageBox { background-color: #FFF9EB; }'
+            'QMessageBox QLabel { color: #66391A; font-family: 맑은 고딕; font-size: 12px; padding: 10px; }'
+            'QPushButton { color: #66391A; background-color: #FFEFB3; border-style: solid; '
+            'border-color: #F5DA97; border-radius: 5px; border-width: 2px; '
+            'min-width: 60px; padding: 5px; font-family: 맑은 고딕; }'
+        )
+        msg.exec_()
+
+    def change_name(self, seat_idx):
+        current_name = self.seat_btn_arr[seat_idx].text()
+        text, ok = InputDialog.getText(self, f'이름 변경 - 좌석 {seat_idx + 1}')
+        
+        if ok and text:
+            # 현재 자리에 있는 학생의 인덱스 찾기
+            student_idx = self.seat_arr[seat_idx]
+            # 이름 변경
+            self.stu_name[student_idx] = text
+            self.seat_btn_arr[seat_idx].setText(text)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
