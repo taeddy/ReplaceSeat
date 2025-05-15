@@ -2,6 +2,8 @@
 
 ## 📌 Introduction
 
+<img alt="Static Badge" src="https://img.shields.io/badge/python-%233776AB?style=for-the-badge&logo=python&logoColor=white"> <img alt="Static Badge" src="https://img.shields.io/badge/PyQt5-%2341CD52?style=for-the-badge&logo=Qt&logoColor=white">
+
 ➡️ 교실에서 학생들의 자리를 바꾸고자 할 때 유용하게 사용할 수 있는 프로그램입니다.  
 
 
