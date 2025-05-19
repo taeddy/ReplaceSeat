@@ -6,30 +6,65 @@ from PyQt5 import uic
 import numpy as np
 from InputDialog import InputDialog
 
+# 11
+
 form_class_mainWindow = uic.loadUiType("uiInfo.ui")[0]
 
-class Button(QPushButton):
+class seat_button(QPushButton):
+    # 새로운 시그널 추가
+    rightClicked = pyqtSignal()
+    dragAndDrop = pyqtSignal()
+    doubleClicked = pyqtSignal()
+    
     def __init__(self, title, parent):
         QPushButton.__init__(self, title, parent)
         self.offset = 0
+        self.drag_start_position = None  # 드래그 시작 위치 저장
+
+    def mousePressEvent(self, e: QMouseEvent):
+        if e.button() == Qt.RightButton:
+            self.rightClicked.emit()  # 우클릭 시그널
+        elif e.button() == Qt.LeftButton:
+            self.drag_start_position = e.pos()  # 드래그 시작 위치 저장
+        super().mousePressEvent(e)
 
     def mouseMoveEvent(self, e: QMouseEvent):
-        if e.buttons() == Qt.RightButton:
-            drag = QDrag(self)
-            mime_data = QMimeData()
-            mime_data.setData("application/hotspot", b"%d %d" % (e.x(), e.y()))
-            drag.setMimeData(mime_data)
+        if not self.drag_start_position:
+            return
 
-            pixmap = QPixmap(self.size())
-            self.render(pixmap)
-            drag.setPixmap(pixmap)
+        # 드래그 시작 위치로부터의 거리가 10픽셀 이상일 때만 드래그 시작
+        if (e.pos() - self.drag_start_position).manhattanLength() < 10:
+            return
 
-            drag.setHotSpot(e.pos() - self.rect().topLeft())
-            drag.exec_(Qt.MoveAction)
+        # 드래그 데이터 생성
+        drag = QDrag(self)
+
+        # mime_data가 있어야 pixmap 설정 가능
+        mime_data = QMimeData()
+        mime_data.setData("application/x-seatbutton", b"")
+        drag.setMimeData(mime_data)
+
+        # 드래그 중 띄울 이미지 생성
+        pixmap = QPixmap(self.size())
+        self.render(pixmap)
+        drag.setPixmap(pixmap)
+
+        # 드래그 핫스팟 설정 (마우스 커서 위치)
+        # 아래와 같이 핫스팟 설정을 하면 잡은 위치 그대로 움직임
+        drag.setHotSpot(e.pos() - self.rect().topLeft())
+
+        # 드래그 시작
+        drag.exec_(Qt.MoveAction)
+        self.drag_start_position = None
 
     def mouseReleaseEvent(self, e: QMouseEvent):
-        if e.button() == Qt.RightButton:
-            self.clicked.emit()
+        self.drag_start_position = None  # 드래그 시작 위치 초기화
+        self.dragAndDrop.emit()
+        super().mouseReleaseEvent(e)
+
+    def mouseDoubleClickEvent(self, e: QMouseEvent):
+        self.doubleClicked.emit()  # 더블클릭 시그널
+        super().mouseDoubleClickEvent(e)
 
 class SeatChanger(QMainWindow, form_class_mainWindow):
     def __init__(self) :
@@ -47,7 +82,7 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         # 좌석 버튼 생성
         self.seat_btn_arr = []
         for i in range(24):
-            self.seat_btn_arr.append(Button('', self))
+            self.seat_btn_arr.append(seat_button('', self))
 
         # 좌석 위치 설정
         # 차후 좌석 위치를 드래그앤드롭으로 변경 가능해지면 수정 예정
@@ -126,49 +161,19 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         f.close()
 
     def init_action(self):
-        self.btn_rand.clicked.connect(self.seat_shuffle)
+        self.btn_rand.clicked.connect(self.shuffle_seats)
         self.btn_save.clicked.connect(self.save_seat)
         self.intro_startbtn.clicked.connect(self.intro_start)
         
-        # 우클릭으로 자리 고정, 더블클릭으로 이름 변경
+        # 우클릭으로 자리고정
+        # 좌클릭-드래그앤드롭으로 자리 이동
+        # 더블클릭으로 이름 변경
         for i in range(self.stu_num):
-            self.seat_btn_arr[i].clicked.connect(lambda checked, idx=i: self.fix_seat(idx))
-            self.seat_btn_arr[i].mouseDoubleClickEvent = lambda e, idx=i: self.change_name(idx)
+            self.seat_btn_arr[i].rightClicked.connect(lambda idx=i: self.fix_seat(idx))
+            self.seat_btn_arr[i].doubleClicked.connect(lambda idx=i: self.change_seat_name(idx))
+            self.seat_btn_arr[i].dragAndDrop.connect(lambda idx=i: self.change_seat_name(idx))
 
-    def dragEnterEvent(self, e):
-        e.accept()
-
-    def dropEvent(self, e):
-        pos = e.pos()
-        widget = e.source()
-        new_seat = None
-        old_seat = None
-
-        # calculate drop location seat number
-        for i in range(self.stu_num):
-            x, y = self.seat_btn_arr[i].x(), self.seat_btn_arr[i].y()
-            w, h = self.seat_btn_arr[i].size().width(), self.seat_btn_arr[i].size().height()
-            if x <= pos.x() <= x+w and y <= pos.y() <= y + h:
-                new_seat = i
-                break
-
-        # find old seat
-        for i in range(self.stu_num):
-            if self.seat_btn_arr[i].text() == widget.text():
-                old_seat = i
-                break
-
-        # change text
-        text = widget.text()
-        widget.setText(self.seat_btn_arr[new_seat].text())
-        self.seat_btn_arr[new_seat].setText(text)
-
-        # change seat
-        stu = self.seat_arr[old_seat]
-        self.seat_arr[old_seat] = self.seat_arr[new_seat]
-        self.seat_arr[new_seat] = stu
-
-    def seat_shuffle(self):
+    def shuffle_seats(self):
         self.btn_rand.setDisabled(True)
         self.btn_save.setDisabled(True)
         self.blind1.raise_()
@@ -248,7 +253,7 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         )
         msg.exec_()
 
-    def change_name(self, seat_idx):
+    def change_seat_name(self, seat_idx):
         text, ok = InputDialog.getText(self, f'이름 변경 - 좌석 {seat_idx + 1}')
         
         if ok and text:
