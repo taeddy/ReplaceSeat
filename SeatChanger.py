@@ -6,6 +6,8 @@ from PyQt5 import uic
 import numpy as np
 from InputDialog import InputDialog
 
+# 11
+
 form_class_mainWindow = uic.loadUiType("uiInfo.ui")[0]
 
 class seat_button(QPushButton):
