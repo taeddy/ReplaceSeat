@@ -9,55 +9,31 @@ from InputDialog import InputDialog
 form_class_mainWindow = uic.loadUiType("uiInfo.ui")[0]
 
 class seat_button(QPushButton):
-    # 새로운 시그널 추가
+    # 시그널 추가
     rightClicked = pyqtSignal()
     doubleClicked = pyqtSignal()
 
     def __init__(self, title, parent):
-        QPushButton.__init__(self, title, parent)
-        self.drag_start_position = None  # 드래그 시작 위치 저장
+        super().__init__(title, parent)
+        font = QFont()
+        font.setFamily('맑은 고딕')
+        font.setPointSize(14)
+        font.setBold(True)
+        font.setWeight(75)
+        self.setFont(font)
+        self.setStyleSheet(
+            'color: #66391A; background-color: #FFEFB3; border-style: solid;'
+            'border-color: #F5DA97; border-radius: 7px; border-width: 3px'
+        )
+        self.lower()
 
     def mousePressEvent(self, e: QMouseEvent):
         if e.button() == Qt.RightButton:
             self.rightClicked.emit()  # 우클릭 시그널
-        elif e.button() == Qt.LeftButton:
-            self.drag_start_position = e.pos()
         super().mousePressEvent(e)
 
-    def mouseMoveEvent(self, e: QMouseEvent):
-        if not self.drag_start_position:
-            return
-
-        # 드래그 시작 위치로부터의 거리가 10픽셀 이상일 때만 드래그 시작
-        if (e.pos() - self.drag_start_position).manhattanLength() < 10:
-            return
-
-        # 드래그 데이터 생성
-        drag = QDrag(self)
-
-        # mime_data가 있어야 pixmap 설정 가능
-        mime_data = QMimeData()
-        drag.setMimeData(mime_data)
-
-        # 드래그 중 띄울 이미지 생성
-        pixmap = QPixmap(self.size())
-        self.render(pixmap)
-        drag.setPixmap(pixmap)
-
-        # 드래그 핫스팟 설정 (마우스 커서 위치)
-        # 아래와 같이 핫스팟 설정을 하면 잡은 위치 그대로 움직임
-        drag.setHotSpot(e.pos() - self.rect().topLeft())
-
-        # 드래그 시작
-        drag.exec_(Qt.MoveAction)
-        super().mouseMoveEvent(e)
-
-    def mouseReleaseEvent(self, e: QMouseEvent):
-        self.drag_start_position = None
-        super().mouseReleaseEvent(e)
-
     def mouseDoubleClickEvent(self, e: QMouseEvent):
-        self.doubleClicked.emit()  # 더블클릭 시그널
+        self.doubleClicked.emit()
         super().mouseDoubleClickEvent(e)
 
 class SeatChanger(QMainWindow, form_class_mainWindow):
@@ -70,7 +46,6 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
     def init_ui(self):
         self.setupUi(self)
         self.setWindowTitle('자리바꾸기')
-        self.setAcceptDrops(True)
         self.statusBar().hide()
 
         # 좌석 버튼 생성
@@ -132,20 +107,8 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         self.seat_btn_arr = self.seat_btn_arr
         self.fixed_seat_idx = []
 
-        font = QFont()
-        font.setFamily('맑은 고딕')
-        font.setPointSize(14)
-        font.setBold(True)
-        font.setWeight(75)
         for i in range(self.stu_num):
             self.seat_btn_arr[i].setText(self.stu_name[i])
-            self.seat_btn_arr[i].setFont(font)
-            self.seat_btn_arr[i].setStyleSheet(
-                'color: #66391A; background-color: #FFEFB3; border-style: solid;'
-                'border-color: #F5DA97; border-radius: 7px; border-width: 3px'
-            )
-            self.seat_btn_arr[i].lower()
-            # self.seat_label_arr[i].setDropEnable(True)
 
     def load_data(self):
         f = open('./명단.txt', 'r', encoding='UTF8')
@@ -165,7 +128,6 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         for i in range(self.stu_num):
             self.seat_btn_arr[i].rightClicked.connect(lambda idx=i: self.fix_seat(idx))
             self.seat_btn_arr[i].doubleClicked.connect(lambda idx=i: self.change_seat_name(idx))
-            self.seat_btn_arr[i].setAcceptDrops(True)
 
     def shuffle_seats(self):
         self.btn_rand.setDisabled(True)
@@ -184,8 +146,8 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         np.random.shuffle(self.seat_arr)
 
         for i in range(len(self.fixed_seat_idx)):
-            tmp1 = self.seat_arr.index(old_owner[i])  # 원래 자리 주인 ㅇㄷ
-            tmp2 = self.seat_arr[self.fixed_seat_idx[i]]  # 원래 자리에 ㄴㄱ
+            tmp1 = self.seat_arr.index(old_owner[i])  # 원래 자리 위치
+            tmp2 = self.seat_arr[self.fixed_seat_idx[i]]  # 원래 자리 주인
             self.seat_arr[self.fixed_seat_idx[i]] = old_owner[i]
             self.seat_arr[tmp1] = tmp2
 
@@ -256,8 +218,6 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
             # 이름 변경
             self.stu_name[student_idx] = text
             self.seat_btn_arr[seat_idx].setText(text)
-
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
