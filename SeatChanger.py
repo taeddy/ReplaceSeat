@@ -6,26 +6,22 @@ from PyQt5 import uic
 import numpy as np
 from InputDialog import InputDialog
 
-# 11
-
 form_class_mainWindow = uic.loadUiType("uiInfo.ui")[0]
 
 class seat_button(QPushButton):
     # 새로운 시그널 추가
     rightClicked = pyqtSignal()
-    dragAndDrop = pyqtSignal()
     doubleClicked = pyqtSignal()
-    
+
     def __init__(self, title, parent):
         QPushButton.__init__(self, title, parent)
-        self.offset = 0
         self.drag_start_position = None  # 드래그 시작 위치 저장
 
     def mousePressEvent(self, e: QMouseEvent):
         if e.button() == Qt.RightButton:
             self.rightClicked.emit()  # 우클릭 시그널
         elif e.button() == Qt.LeftButton:
-            self.drag_start_position = e.pos()  # 드래그 시작 위치 저장
+            self.drag_start_position = e.pos()
         super().mousePressEvent(e)
 
     def mouseMoveEvent(self, e: QMouseEvent):
@@ -41,7 +37,6 @@ class seat_button(QPushButton):
 
         # mime_data가 있어야 pixmap 설정 가능
         mime_data = QMimeData()
-        mime_data.setData("application/x-seatbutton", b"")
         drag.setMimeData(mime_data)
 
         # 드래그 중 띄울 이미지 생성
@@ -55,11 +50,10 @@ class seat_button(QPushButton):
 
         # 드래그 시작
         drag.exec_(Qt.MoveAction)
-        self.drag_start_position = None
+        super().mouseMoveEvent(e)
 
     def mouseReleaseEvent(self, e: QMouseEvent):
-        self.drag_start_position = None  # 드래그 시작 위치 초기화
-        self.dragAndDrop.emit()
+        self.drag_start_position = None
         super().mouseReleaseEvent(e)
 
     def mouseDoubleClickEvent(self, e: QMouseEvent):
@@ -171,7 +165,7 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
         for i in range(self.stu_num):
             self.seat_btn_arr[i].rightClicked.connect(lambda idx=i: self.fix_seat(idx))
             self.seat_btn_arr[i].doubleClicked.connect(lambda idx=i: self.change_seat_name(idx))
-            self.seat_btn_arr[i].dragAndDrop.connect(lambda idx=i: self.change_seat_name(idx))
+            self.seat_btn_arr[i].setAcceptDrops(True)
 
     def shuffle_seats(self):
         self.btn_rand.setDisabled(True)
@@ -263,8 +257,10 @@ class SeatChanger(QMainWindow, form_class_mainWindow):
             self.stu_name[student_idx] = text
             self.seat_btn_arr[seat_idx].setText(text)
 
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    myWindow = SeatChanger()
-    myWindow.show()
+    mainWindow = SeatChanger()
+    mainWindow.show()
     app.exec_()
